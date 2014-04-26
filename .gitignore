@@ -1,0 +1,8 @@
+# Common Emacs editing files
+*~
+*#
+
+# Ignore the source directories that we clone into our directory
+mosesdecoder/*
+giza-pp/*
+working/*

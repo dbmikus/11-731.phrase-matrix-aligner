@@ -1,0 +1,28 @@
+Software required:
+====================
+
+Software required for install:
+-----------------------------------
+git
+subversion
+make
+libtool
+gcc
+g++
+libboost-dev
+tcl-dev
+tk-dev
+zlib1g-dev
+libbz2-dev
+python-dev
+
+Software installed by INSTALL:
+-----------------------------------
+Giza++
+Moses
+
+For help with installing Moses by hand and with finding the packages needed by
+Moses, please refer to http://www.statmt.org/moses/?n=Development.GetStarted
+
+For help with getting Giza++ to work with Moses, see the url:
+http://www.statmt.org/moses/?n=Moses.Baseline
