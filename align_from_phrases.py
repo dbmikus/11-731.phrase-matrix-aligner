@@ -63,7 +63,6 @@ def main():
         if len(swords) <= max_sent_len:
             alignment = phrase_alignment(swords, twords,
                                                phrase_table,
-                                               opts.max_phrase_len,
                                                opts.num_phrases)
             print ''
             if (alignment):
@@ -97,7 +96,16 @@ def coverage(sequence):
     #   c1 & c2 will be != 0 if c1 and c2 DO overlap
     return reduce(lambda x,y: x|y, map(lambda i: long(1) << i, sequence), 0)
 
-def phrase_alignment(f, e, tm, n, k):
+
+# Attempts to fully align the source sentence with the target sentence based on
+# the phrase table in the translation model.
+# Argument descriptions:
+#   f:  the tokenized source sentence
+#   e:  the tokenized target sentence
+#   tm: the translation model and phrase table
+#   k:  the maximum number of phrases translations available we allow for each
+#       target phrase
+def phrase_alignment(f, e, tm, k):
     f = tuple(map(lambda s: s.lower(), f))
     e = tuple(map(lambda s: s.lower(), e))
 
@@ -120,7 +128,6 @@ def phrase_alignment(f, e, tm, n, k):
     for i, alignment in enumerate(alignments):
         alignment.sort(key=lambda x: -x[1])
         alignments[i] = alignment[:k]
-
 
     # Compute sum of probability of all possible alignments by dynamic programming.
     # To do this, recursively compute the sum over all possible alignments for each
@@ -154,7 +161,6 @@ def phrase_alignment(f, e, tm, n, k):
         # sys.stderr.write("ERROR: COULD NOT ALIGN SENTENCE\n")
         print ("ERROR: COULD NOT ALIGN SENTENCE")
         return None
-
 
 
 # A translation model is a dictionary where keys are tuples of French words
