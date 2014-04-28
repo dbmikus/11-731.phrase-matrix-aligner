@@ -12,3 +12,4 @@ http://www.statmt.org/moses/?n=FactoredTraining.RunGIZA
 Relevant files
 ========================================
 working/experiments/model/phrase-table.1.gz
+working/experiments/lm/project-syndicate.lm.6

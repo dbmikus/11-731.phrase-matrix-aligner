@@ -61,10 +61,11 @@ def main():
         # We only do the optimal phrase based aligner if the sentence is under a
         # given length, due to performance concerns.
         if len(swords) <= max_sent_len:
-            alignment = phrase_based_alignment(swords, twords,
+            alignment = phrase_alignment(swords, twords,
                                                phrase_table,
                                                opts.max_phrase_len,
                                                opts.num_phrases)
+            print ''
             if (alignment):
                 num_phrase_aligned += 1
             else:
@@ -96,17 +97,13 @@ def coverage(sequence):
     #   c1 & c2 will be != 0 if c1 and c2 DO overlap
     return reduce(lambda x,y: x|y, map(lambda i: long(1) << i, sequence), 0)
 
-def coverage2str(c, n, on='o', off='.'):
-    # Generate a length-n string representation of coverage c #
-    return '' if n==0 else (on if c&1==1 else off) + coverage2str(c>>1, n-1, on, off)
+def phrase_alignment(f, e, tm, n, k):
+    f = tuple(map(lambda s: s.lower(), f))
+    e = tuple(map(lambda s: s.lower(), e))
 
+    print f
+    print e
 
-def phrase_based_alignment(f, e, tm, n, k):
-    f = map(lambda s: s.lower(), f)
-    e = map(lambda s: s.lower(), e)
-
-    f = tuple(f)
-    e = tuple(e)
     # alignments[i] is a list of all the phrases in f that could have
     # generated phrases starting at position i in e
     alignments = [[] for _ in e]
@@ -119,10 +116,10 @@ def phrase_based_alignment(f, e, tm, n, k):
                         ej = ei+len(ephrase)
                         if ephrase == e[ei:ej]:
                             alignments[ei].append((ej, phrase.prob, fi, fj))
-    # Sort each possible phrase translation by descending probability
+    # Sort each possible phrase translation by descending probability.
     for i, alignment in enumerate(alignments):
-        alignments[i].sort(key=lambda x: -x[1])
-        alignments[i] = alignments[i][:k]
+        alignment.sort(key=lambda x: -x[1])
+        alignments[i] = alignment[:k]
 
 
     # Compute sum of probability of all possible alignments by dynamic programming.
@@ -130,38 +127,34 @@ def phrase_based_alignment(f, e, tm, n, k):
     # each pair of English prefix (indexed by ei) and French coverage (indexed by
     # coverage v), working upwards from the base case (ei=0, v=0) [i.e. forward chaining].
     # The final sum is the one obtained for the pair (ei=len(e), v=range(len(f))
-    print f
-    print ""
-    print e
-    print ""
-    print alignments
-    print ""
-
-    total_prob = 0.0
+    sum_data = namedtuple("sum_data", "prob, alignments")
     chart = [{} for _ in e] + [{}]
-    chart[0][0] = 0.0
-    print 'len(chart[:-1]) = ' + str(len(chart[:-1]))
+    chart[0][0] = sum_data(0.0, [])
     for ei, sums in enumerate(chart[:-1]):
-        print 'len(sums) = ' + str(len(sums))
-        print 'len(alignments[' + str(ei) + '] = ' + str(len(alignments[ei]))
         for v in sums:
             for ej, prob, fi, fj in alignments[ei]:
                 if coverage(range(fi,fj)) & v == 0:
                     new_v = coverage(range(fi,fj)) | v
+                    next_prob = sums[v].prob * prob
+                    old_alignments = sums[v].alignments
+                    # Append the newest phrase alignment to the list of alignments.
+                    new_alignments = old_alignments + [((ei, ej), (fi, fj))]
                     if new_v in chart[ej]:
-                        chart[ej][new_v] = chart[ej][new_v] + sums[v] + prob
+                        if chart[ej][new_v].prob < next_prob:
+                            chart[ej][new_v] = sum_data(next_prob, new_alignments)
+                        # chart[ej][new_v] = logadd(chart[ej][new_v], sums[v]+logprob)
                     else:
-                        chart[ej][new_v] = sums[v]+prob
+                        chart[ej][new_v] = sum_data(next_prob, new_alignments)
+                        # chart[ej][new_v] = sums[v]+logprob
     goal = coverage(range(len(f)))
     if goal in chart[len(e)]:
-        total_prob += chart[len(e)][goal]
-        # sys.stderr.write("SUCCESS: SUCCESSFULY ALIGN SENTENCE\n")
-        print "SUCCESS: SUCCESSFULY ALIGN SENTENCE"
-        return total_prob
+        print ("SUCCESS: WE ALIGNED THE SENTENCE")
+        return chart[len(e)][goal].alignments
     else:
         # sys.stderr.write("ERROR: COULD NOT ALIGN SENTENCE\n")
-        print "ERROR: COULD NOT ALIGN SENTENCE"
+        print ("ERROR: COULD NOT ALIGN SENTENCE")
         return None
+
 
 
 # A translation model is a dictionary where keys are tuples of French words
