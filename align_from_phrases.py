@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
 import argparse
-import sys
+import sys, os
 import codecs
+import csv
 from collections import namedtuple
 
 phrase = namedtuple("phrase", "english, prob")
@@ -33,6 +34,29 @@ def setup_parser():
 
     opts = parser.parse_args()
     return opts
+
+
+# The alignment is pairs of (source, target) alignments.
+# In the CSV file, columns are source and rows are target.
+def alignment_to_csv(alignments, outfile, on='X', off='0'):
+    max_col = reduce(lambda acc, x: max(acc, x[0]), alignments, -1) + 1
+    max_row = reduce(lambda acc, x: max(acc, x[1]), alignments, -1) + 1
+    # First order array is columns, second order arrays are rows
+    # First order array is rows, second order arrays are columns
+    csv_grid = [None] * max_row
+    for i, row in enumerate(csv_grid):
+        csv_grid[i] = [off] * max_col
+    # Mark each alignment value in the grid
+    for alignment in alignments:
+        csv_grid[alignment[1]][alignment[0]] = on
+    # Write out the CSV files
+    with open(outfile, 'w+') as csvfile:
+        csv_writer = csv.writer(csvfile, delimiter=',', quotechar='"',
+                                quoting=csv.QUOTE_MINIMAL)
+        for row in csv_grid:
+            csv_writer.writerow(row)
+
+
 
 def main():
     opts = setup_parser()
@@ -67,6 +91,11 @@ def main():
             print ''
             if (alignment):
                 num_phrase_aligned += 1
+                n = str(num_phrase_aligned)
+                alignment_to_csv(alignment, os.path.expanduser('~') + '/phrase-align' + n + '.csv')
+                alignment_to_csv(align_pairs, os.path.expanduser('~') + '/orig-align' + n + '.csv')
+                if num_phrase_aligned > 5:
+                    return
             else:
                 num_not_aligned += 1
         # Sentence is too long, so it will be too slow to use the standard
@@ -145,7 +174,7 @@ def phrase_alignment(f, e, tm, k):
                     next_prob = sums[v].prob * prob
                     old_alignments = sums[v].alignments
                     # Append the newest phrase alignment to the list of alignments.
-                    new_alignments = old_alignments + [((ei, ej), (fi, fj))]
+                    new_alignments = old_alignments + [((fi, fj), (ei, ej))]
                     if new_v in chart[ej]:
                         if chart[ej][new_v].prob < next_prob:
                             chart[ej][new_v] = sum_data(next_prob, new_alignments)
@@ -156,11 +185,28 @@ def phrase_alignment(f, e, tm, k):
     goal = coverage(range(len(f)))
     if goal in chart[len(e)]:
         print ("SUCCESS: WE ALIGNED THE SENTENCE")
-        return chart[len(e)][goal].alignments
+        return expand_phrase_alignment(chart[len(e)][goal].alignments)
     else:
         # sys.stderr.write("ERROR: COULD NOT ALIGN SENTENCE\n")
         print ("ERROR: COULD NOT ALIGN SENTENCE")
         return None
+
+
+# We want alignments to be on a word-to-word basis, not phrase-to-phrase.
+# Thus, we expand the phrase alignment so that every word in the source
+# phrase aligns with every word in the target phrase.
+def expand_phrase_alignment(alignments):
+    expanded = []
+    for alignment in alignments:
+        fi = alignment[0][0]
+        fj = alignment[0][1]
+        ei = alignment[1][0]
+        ej = alignment[1][1]
+
+        for fk in xrange(fi, fj):
+            for ek in xrange(ei, ej):
+                expanded.append((fk, ek))
+    return expanded
 
 
 # A translation model is a dictionary where keys are tuples of French words
