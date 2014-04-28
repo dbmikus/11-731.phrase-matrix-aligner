@@ -1,3 +1,5 @@
+Web links
+========================================
 http://www.statmt.org/moses/?n=Moses.Tutorial
 http://www.statmt.org/moses/?n=Moses.Baseline
 http://www.statmt.org/moses/?n=FactoredTraining.AlignWords
@@ -5,3 +7,8 @@ http://www.statmt.org/moses/?n=FactoredTraining.TrainingParameters
 http://www.statmt.org/moses/?n=FactoredTraining.EMS
 http://www.statmt.org/moses/uploads/Moses/config
 http://www.statmt.org/moses/?n=FactoredTraining.RunGIZA
+
+
+Relevant files
+========================================
+working/experiments/model/phrase-table.1.gz
