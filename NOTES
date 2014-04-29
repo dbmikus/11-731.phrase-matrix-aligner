@@ -13,3 +13,11 @@ Relevant files
 ========================================
 working/experiments/model/phrase-table.1.gz
 working/experiments/lm/project-syndicate.lm.6
+
+
+Experiment results
+========================================
+Given corpus files "news-commentary-v8.fr-en.{fr|en}" truncated to 5000
+sentences, the standard Moses phrase-based translation netted a Bleu
+score of:
+    newstest2010: 15.45 (1.080) BLEU

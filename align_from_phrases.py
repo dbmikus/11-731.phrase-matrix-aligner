@@ -57,6 +57,11 @@ def alignment_to_csv(alignments, outfile, on='X', off='0'):
             csv_writer.writerow(row)
 
 
+# Converts the alignment pairs to strings of the form: source - target
+def alignment_to_str(alignments):
+    return ' '.join(map(lambda pair: str(pair[0]) + '-' + str(pair[1]),
+                        alignments))
+
 
 def main():
     opts = setup_parser()
@@ -67,6 +72,7 @@ def main():
 
     num_phrase_aligned = 0
     num_not_aligned = 0
+    num_fast_aligned = 0
 
     sf = codecs.open(opts.source_filename, 'r', 'utf-8')
     tf = codecs.open(opts.target_filename, 'r', 'utf-8')
@@ -88,20 +94,19 @@ def main():
             alignment = phrase_alignment(swords, twords,
                                                phrase_table,
                                                opts.num_phrases)
-            print ''
             if (alignment):
                 num_phrase_aligned += 1
-                n = str(num_phrase_aligned)
-                alignment_to_csv(alignment, os.path.expanduser('~') + '/phrase-align' + n + '.csv')
-                alignment_to_csv(align_pairs, os.path.expanduser('~') + '/orig-align' + n + '.csv')
-                if num_phrase_aligned > 5:
-                    return
+            # Alignment purely on phrases failed, so for now we just fall back
+            # to the traditional GIZA++ based word alignment matrix.
             else:
                 num_not_aligned += 1
+                alignment = align_pairs
         # Sentence is too long, so it will be too slow to use the standard
         # phrase-based aligner.
         else:
+            num_fast_aligned += 1
             alignment = align_pairs
+        print alignment_to_str(alignment)
         # Get next lines and repeat
         sline = sf.readline()
         tline = tf.readline()
@@ -113,8 +118,9 @@ def main():
         sys.stderr.write('Error: target sentence file was longer than'
                          + ' cooresponding source sentence file')
 
-    print("NUMBER of correctly aligned = %d", num_phrase_aligned)
-    print("NUMBER unable to align = %d", num_not_aligned)
+    sys.stderr.write("NUMBER of correctly aligned = %d\n" % num_phrase_aligned)
+    sys.stderr.write("NUMBER unable to align = %d\n" % num_not_aligned)
+    sys.stderr.write("NUMBER too long, so fast aligned = %d\n" % num_fast_aligned)
 
 
 def coverage(sequence):
@@ -137,9 +143,6 @@ def coverage(sequence):
 def phrase_alignment(f, e, tm, k):
     f = tuple(map(lambda s: s.lower(), f))
     e = tuple(map(lambda s: s.lower(), e))
-
-    print f
-    print e
 
     # alignments[i] is a list of all the phrases in f that could have
     # generated phrases starting at position i in e
@@ -184,11 +187,9 @@ def phrase_alignment(f, e, tm, k):
                         # chart[ej][new_v] = sums[v]+logprob
     goal = coverage(range(len(f)))
     if goal in chart[len(e)]:
-        print ("SUCCESS: WE ALIGNED THE SENTENCE")
         return expand_phrase_alignment(chart[len(e)][goal].alignments)
     else:
-        # sys.stderr.write("ERROR: COULD NOT ALIGN SENTENCE\n")
-        print ("ERROR: COULD NOT ALIGN SENTENCE")
+        sys.stderr.write("ERROR: COULD NOT ALIGN SENTENCE\n")
         return None
 
 
