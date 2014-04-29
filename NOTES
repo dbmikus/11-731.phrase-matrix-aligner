@@ -21,3 +21,16 @@ Given corpus files "news-commentary-v8.fr-en.{fr|en}" truncated to 5000
 sentences, the standard Moses phrase-based translation netted a Bleu
 score of:
     newstest2010: 15.45 (1.080) BLEU
+
+Without tuning but with normal alignment:
+    newstest2010: 14.66 (1.076) BLEU
+
+Without tuning and with phrase-based alignment matrix:
+    newstest2010: 14.42 (1.074) BLEU
+
+Without tuning and with simple GIZA++ intersection alignment:
+    newstest2010: 14.31 (0.999) BLEU
+
+Without tuning and with phrase-based alignment matrix built from simple
+intersection:
+    newstest2010: 14.42 (1.074) BLEU
