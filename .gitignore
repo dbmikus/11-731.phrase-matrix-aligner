@@ -2,6 +2,9 @@
 *~
 *#
 
+# Ignoring Python files
+*.pyc
+
 # Ignore the source directories that we clone into our directory
 mosesdecoder/*
 giza-pp/*

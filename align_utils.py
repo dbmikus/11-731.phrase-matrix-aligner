@@ -27,6 +27,6 @@ def alignment_to_str(alignments):
                         alignments))
 
 def str_to_alignment(alignment_line):
-    map(lambda pair_str: tuple(map(lambda x: int(x),
-                                   pair_str.split('-'))),
-        alignment_line.strip().split())
+    return map(lambda pair_str: tuple(map(lambda x: int(x),
+                                          pair_str.split('-'))),
+               alignment_line.strip().split())

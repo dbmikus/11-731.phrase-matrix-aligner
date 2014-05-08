@@ -17,20 +17,30 @@ working/experiments/lm/project-syndicate.lm.6
 
 Experiment results
 ========================================
+Sentences, cleaned and stuff:
+    working/experiments/corpus/project-syndicate.clean.1.en
+    working/experiments/corpus/project-syndicate.clean.1.fr
+
+
 Given corpus files "news-commentary-v8.fr-en.{fr|en}" truncated to 5000
 sentences, the standard Moses phrase-based translation netted a Bleu
 score of:
+    alignment file: working/experiments/model/aligned.1.grow-diag-final-and
     newstest2010: 15.45 (1.080) BLEU
 
 Without tuning but with normal alignment:
+    alignment file: working/experiments/model/aligned.1.grow-diag-final-and
     newstest2010: 14.66 (1.076) BLEU
 
 Without tuning and with phrase-based alignment matrix:
+    alignment file: new-align.txt.grow-diag-final-and
     newstest2010: 14.42 (1.074) BLEU
 
 Without tuning and with simple GIZA++ intersection alignment:
+    alignment file: working/experiments/model/aligned.22.intersection
     newstest2010: 14.31 (0.999) BLEU
 
 Without tuning and with phrase-based alignment matrix built from simple
 intersection:
+    alignment file: new-align.txt.intersection
     newstest2010: 14.42 (1.074) BLEU
